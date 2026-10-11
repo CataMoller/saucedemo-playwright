@@ -1,0 +1,12 @@
+
+> saucedemo-playwright@1.0.0 test
+> playwright test --project=chromium
+
+
+Running 3 tests using 3 workers
+
+  ✓  2 [chromium] › tests/checkout/order-totals.spec.ts:29:7 › Checkout overview totals › calculates item total, tax and total correctly (1.5s)
+  ✘  1 [chromium] › tests/checkout/order-totals.spec.ts:38:7 › Checkout overview totals › displays all amounts with exactly two decimals (1.5s)
+  ✓  3 [chromium] › tests/checkout/purchase-from-product-detail.spec.ts:10:5 › performance_glitch_user buys a product starting from its detail page (11.7s)
+
+  3 passed (12.5s)
