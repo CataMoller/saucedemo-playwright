@@ -111,4 +111,6 @@ See [docs/sample-run.txt](docs/sample-run.txt).
 
 ## AI usage
 
-TODO: completed by the author
+I used Claude Code as a pair-programming assistant for this project: scaffolding the page objects and fixtures, drafting the README, and setting up the CI workflow.
+
+The test design and the findings behind it are my own: the exploratory session on `performance_glitch_user` (the ~5 s main-thread delay), the choice of the totals bonus test, and the display bug in the totals. I reviewed and ran all generated code, and re-verified the known bug and the stability numbers against the live site.
