@@ -1,6 +1,6 @@
 # saucedemo-playwright
 
-[![Playwright Tests](https://github.com/<github-user>/saucedemo-playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/<github-user>/saucedemo-playwright/actions/workflows/playwright.yml)
+[![Playwright Tests](https://github.com/CataMoller/saucedemo-playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/CataMoller/saucedemo-playwright/actions/workflows/playwright.yml)
 
 ## Overview
 
@@ -22,7 +22,7 @@ End-to-end test automation for [saucedemo.com](https://www.saucedemo.com) built 
 ## Setup
 
 ```bash
-git clone https://github.com/<github-user>/saucedemo-playwright.git
+git clone https://github.com/CataMoller/saucedemo-playwright.git
 cd saucedemo-playwright
 npm ci
 npx playwright install            # all browsers; or: npx playwright install chromium
