@@ -1,12 +1,17 @@
 # saucedemo-playwright
 
+[![Playwright Tests](https://github.com/<github-user>/saucedemo-playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/<github-user>/saucedemo-playwright/actions/workflows/playwright.yml)
+
 ## Overview
 
 End-to-end test automation for [saucedemo.com](https://www.saucedemo.com) built with Playwright and TypeScript. It contains two scenarios: a mandatory purchase flow started from a product detail page (run as `performance_glitch_user`), and a bonus regression test that protects the money calculation on the checkout overview.
 
 ## Tech stack and why
 
-- **[@playwright/test](https://playwright.dev) + TypeScript**: one dependency provides the runner, assertions with auto-retry, tracing, and multi-browser support. TypeScript catches typos in page objects and test data at compile time.
+- **@playwright/test + TypeScript**: one dependency provides the runner, assertions with auto-retry, tracing and multi-browser support. TypeScript catches typos in page objects and test data at compile time.
+- **Auto-waiting and web-first assertions** are key for `performance_glitch_user`, whose delays would make fixed waits either slow or flaky.
+- **Built-in HTML report and trace viewer**, so failures can be debugged without extra tooling.
+- **Alternatives considered:** Cypress. Playwright was chosen for native WebKit and Firefox support, built-in parallelism, and because it is the framework I use daily.
 - **Node.js LTS** and nothing else: no extra test frameworks or helper libraries were needed.
 
 ## Prerequisites
@@ -17,6 +22,8 @@ End-to-end test automation for [saucedemo.com](https://www.saucedemo.com) built 
 ## Setup
 
 ```bash
+git clone https://github.com/<github-user>/saucedemo-playwright.git
+cd saucedemo-playwright
 npm ci
 npx playwright install            # all browsers; or: npx playwright install chromium
 ```
@@ -55,6 +62,7 @@ src/utils/money.ts              Price parsing to integer cents, tax calculation
 src/utils/timeouts.ts           SLOW_PAGE_LOAD_TIMEOUT and the data behind it
 tests/checkout/                 Spec files
 docs/sample-run.txt             Console output of a clean `npm test`
+docs/html-report.png            Screenshot of the HTML report
 .github/workflows/playwright.yml  CI
 ```
 
@@ -75,12 +83,14 @@ As `standard_user`, add Sauce Labs Bike Light and Sauce Labs Fleece Jacket, then
 
 ## Design decisions
 
-- **`data-test` locators.** `testIdAttribute` is set to `data-test`, so locators use `page.getByTestId()`. They are stable against copy and layout changes. Role/text locators are used only where no test id exists (filtering a product by its name).
+- **`data-test` locators.** `testIdAttribute` is set to `data-test`, so locators use `page.getByTestId()`. They are stable against copy and layout changes. Text filtering is used only to pick a product by its name.
 - **Page objects + fixtures.** Selectors and interactions live in `src/pages/`; specs read as a business flow. A custom fixture injects the page objects, so tests never construct them by hand. Assertions stay in the specs.
 - **Slow-action timeout instead of sleeps or a global timeout.** In an earlier exploratory session, the browser main thread of `performance_glitch_user` was blocked for about 5 seconds (median 5029 ms over 3 runs, versus 12 ms for `standard_user`) after login, after changing the sort option, and after clicking "Back to products". The delay is client-side, not network. Playwright's default expect timeout is 5000 ms, so default assertions after those actions would be flaky. `SLOW_PAGE_LOAD_TIMEOUT` (15 s) is passed explicitly only to the assertions that follow those actions. Global timeouts keep the Playwright defaults, so every other failure is reported quickly, and there are no `waitForTimeout` calls or forced clicks.
 - **Money in integer cents.** Displayed amounts are parsed to cents and compared as integers, so floating point error never causes (or hides) a failure. Tax is computed with integer arithmetic.
 - **`test.fail()` for the known bug.** The failing behaviour stays documented and executable. The suite is green while the bug exists and signals when it is fixed.
 - **Waiting for navigation.** After opening the detail page the test waits for an element that exists only there (`back-to-products`), because `inventory-item-name` also exists on the inventory page and would match the wrong page during navigation.
+- **Retries: 0 locally, 1 on CI.** Locally, any flakiness is visible immediately; on CI, one retry records a trace for debugging.
+- **Stability check:** the suite was run with `--repeat-each=5` on chromium (15/15 passed) and once on chromium, firefox and webkit (9/9 passed).
 
 ## Known limitations
 
@@ -88,10 +98,16 @@ As `standard_user`, add Sauce Labs Bike Light and Sauce Labs Fleece Jacket, then
 - Tests depend on a public external site; downtime, slowness or changes to the site can fail them.
 - Chromium is the default project. `npm run test:all` was run once with all three browsers and every test behaved identically (no browser-specific failures at the time of writing).
 - Each test runs in a fresh browser context, so state is isolated even though the site stores the cart in localStorage.
+- The 8% tax rate is inferred from observed behavior (no specification available). If the business rule changes, the totals test must be updated.
+- The CI workflow runs chromium only, to keep it fast.
+- `SLOW_PAGE_LOAD_TIMEOUT` assumes the measured ~5 s delay. If the site becomes significantly slower, tests will fail, which is intended to surface a performance regression.
+- Mobile viewports, visual regression and accessibility checks are out of scope.
 
 ## Sample run
 
 See [docs/sample-run.txt](docs/sample-run.txt).
+
+![Playwright HTML report](docs/html-report.png)
 
 ## AI usage
 
